@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AI Monitoring Care System for Hospitals and Quarantine Centers — real-time fall detection, irregular activity monitoring, alerts, and JSON reporting." />
+  <title>AI Monitoring Care System</title>
+  <style>
+    :root{
+      --bg:#07111f;
+      --bg-soft:#0d1b2a;
+      --card:#10263b;
+      --card-2:#0d2033;
+      --text:#ecf7ff;
+      --muted:#9fb4c8;
+      --line:rgba(255,255,255,.09);
+      --accent:#49d7ff;
+      --accent-2:#6bf0b0;
+      --warning:#ffd166;
+      --danger:#ff6b6b;
+      --shadow:0 24px 70px rgba(0,0,0,.35);
+      --radius:22px;
+      --max:1180px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(73,215,255,.14), transparent 28%),
+        radial-gradient(circle at 85% 18%, rgba(107,240,176,.10), transparent 24%),
+        linear-gradient(180deg,#06101c 0%,#081827 55%,#06101c 100%);
+      line-height:1.65;
+    }
+
+    a{color:inherit;text-decoration:none}
+    code,pre{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
+
+    .wrap{width:min(var(--max),calc(100% - 32px));margin:auto}
+
+    nav{
+      position:sticky;top:0;z-index:50;
+      backdrop-filter:blur(14px);
+      background:rgba(6,16,28,.72);
+      border-bottom:1px solid var(--line);
+    }
+    .nav-inner{height:74px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.2px}
+    .logo{
+      width:42px;height:42px;border-radius:14px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      color:#032033;font-size:22px;box-shadow:0 10px 30px rgba(73,215,255,.22)
+    }
+    .nav-links{display:flex;gap:20px;color:var(--muted);font-size:14px}
+    .nav-links a:hover{color:var(--text)}
+
+    .hero{padding:88px 0 70px;position:relative;overflow:hidden}
+    .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:center}
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:10px;
+      padding:8px 12px;border:1px solid rgba(73,215,255,.28);
+      border-radius:999px;color:#c8f5ff;background:rgba(73,215,255,.07);
+      font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.11em
+    }
+    h1{font-size:clamp(44px,7vw,78px);line-height:1.03;margin:22px 0 22px;letter-spacing:-.045em}
+    h1 span{background:linear-gradient(90deg,#ffffff 12%,#6de0ff 55%,#8af3c4);-webkit-background-clip:text;color:transparent}
+    .lead{font-size:19px;color:#bdd1e3;max-width:760px;margin:0 0 30px}
+    .hero-actions{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:34px}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;
+      padding:13px 18px;border-radius:14px;font-weight:800;font-size:14px;
+      border:1px solid var(--line);transition:.2s ease
+    }
+    .btn.primary{background:linear-gradient(135deg,var(--accent),#83ecff);color:#021522;border:none}
+    .btn.secondary{background:rgba(255,255,255,.04)}
+    .btn:hover{transform:translateY(-2px)}
+    .trust-row{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:14px}
+    .trust-row span{display:flex;align-items:center;gap:8px}
+
+    .monitor-card{
+      border:1px solid var(--line);border-radius:30px;padding:18px;
+      background:linear-gradient(180deg,rgba(20,48,72,.93),rgba(10,27,43,.9));
+      box-shadow:var(--shadow);position:relative
+    }
+    .monitor-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+    .monitor-title{font-weight:800}
+    .live{display:flex;align-items:center;gap:7px;color:#bdfad8;font-size:12px;font-weight:800}
+    .live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 0 6px rgba(107,240,176,.10)}
+    .video{
+      aspect-ratio:16/10;border-radius:20px;overflow:hidden;position:relative;
+      background:
+        linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01)),
+        radial-gradient(circle at 50% 50%,rgba(73,215,255,.12),transparent 35%),#081827;
+      border:1px solid rgba(255,255,255,.07)
+    }
+    .room{position:absolute;inset:0;background:
+      linear-gradient(90deg,transparent 49%,rgba(255,255,255,.03) 50%,transparent 51%),
+      linear-gradient(transparent 49%,rgba(255,255,255,.03) 50%,transparent 51%);
+      background-size:90px 90px;opacity:.5}
+    .patient{position:absolute;left:49%;top:36%;width:70px;height:130px;transform:translateX(-50%)}
+    .patient::before{content:"";position:absolute;left:24px;top:0;width:24px;height:24px;border:3px solid #8de5ff;border-radius:50%}
+    .patient::after{content:"";position:absolute;left:34px;top:26px;width:3px;height:65px;background:#8de5ff;box-shadow:-22px 25px 0 -1px #8de5ff,22px 25px 0 -1px #8de5ff}
+    .bbox{position:absolute;left:38%;top:23%;width:132px;height:210px;border:2px solid var(--accent);border-radius:10px;box-shadow:0 0 30px rgba(73,215,255,.15)}
+    .bbox-label{position:absolute;left:0;top:-28px;background:var(--accent);color:#00141d;font-weight:900;font-size:11px;padding:4px 7px;border-radius:6px}
+    .corner{position:absolute;right:15px;bottom:14px;font-size:12px;color:#a9c2d6;background:rgba(1,8,14,.62);padding:7px 9px;border-radius:10px}
+    .monitor-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+    .mini{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:15px;padding:12px}
+    .mini small{display:block;color:var(--muted);font-size:11px;margin-bottom:3px}
+    .mini strong{font-size:15px}
+
+    section{padding:80px 0}
+    .section-head{max-width:760px;margin-bottom:34px}
+    .section-head .kicker{color:var(--accent);text-transform:uppercase;letter-spacing:.13em;font-weight:800;font-size:12px}
+    h2{font-size:clamp(30px,4vw,48px);line-height:1.15;letter-spacing:-.035em;margin:10px 0 12px}
+    .section-head p{color:var(--muted);font-size:17px}
+
+    .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+    .card{background:linear-gradient(180deg,rgba(16,38,59,.94),rgba(10,28,45,.95));border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:0 18px 45px rgba(0,0,0,.18)}
+    .icon{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:rgba(73,215,255,.09);border:1px solid rgba(73,215,255,.18);font-size:23px;margin-bottom:16px}
+    .card h3{font-size:18px;margin:0 0 8px}
+    .card p{color:var(--muted);font-size:14px;margin:0}
+
+    .arch{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;align-items:stretch}
+    .step{position:relative;background:rgba(255,255,255,.035);border:1px solid var(--line);padding:22px 18px;border-radius:18px;text-align:center}
+    .step b{display:block;margin-top:8px;font-size:14px}
+    .step small{color:var(--muted)}
+    .step:not(:last-child)::after{content:"→";position:absolute;right:-12px;top:50%;transform:translateY(-50%);color:var(--accent);font-size:20px;z-index:3}
+
+    .tech-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+    .stack{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+    .pill{padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.045);border:1px solid var(--line);color:#d8e8f5;font-size:13px;font-weight:700}
+
+    .codebox{background:#04101a;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
+    .codebar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0b1c2b;border-bottom:1px solid var(--line);color:#9fb4c8;font-size:12px}
+    .dots{display:flex;gap:7px}.dots i{display:block;width:9px;height:9px;border-radius:50%;background:#48657a}.dots i:nth-child(1){background:#ff6b6b}.dots i:nth-child(2){background:#ffd166}.dots i:nth-child(3){background:#6bf0b0}
+    pre{margin:0;padding:22px;overflow:auto;color:#dff6ff;font-size:13px;line-height:1.75}
+
+    .workflow{display:grid;grid-template-columns:.9fr 1.1fr;gap:26px;align-items:start}
+    .timeline{display:grid;gap:12px}
+    .timeline-item{display:flex;gap:14px;padding:18px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid var(--line)}
+    .num{flex:0 0 34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#05202d;font-weight:900}
+    .timeline-item b{display:block;margin-bottom:4px}.timeline-item span{color:var(--muted);font-size:14px}
+
+    .structure{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+    .file-card ul{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:12px}
+    .file-card li{padding:13px 14px;background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:13px;color:#d7e7f4}
+    .file-card li strong{color:#fff}
+
+    .notice{border:1px solid rgba(255,209,102,.24);background:rgba(255,209,102,.07);padding:18px 20px;border-radius:18px;color:#f5e7b6}
+    .notice strong{color:#ffe59a}
+
+    footer{border-top:1px solid var(--line);padding:34px 0 44px;color:var(--muted);font-size:14px}
+    .footer-inner{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+    @media (max-width:960px){
+      .hero-grid,.tech-grid,.workflow,.structure{grid-template-columns:1fr}
+      .grid-4{grid-template-columns:repeat(2,1fr)}
+      .arch{grid-template-columns:1fr 1fr}
+      .step:not(:last-child)::after{display:none}
+      .monitor-card{max-width:660px}
+    }
+    @media (max-width:650px){
+      .nav-links{display:none}
+      .hero{padding-top:58px}
+      .grid-4,.arch{grid-template-columns:1fr}
+      .monitor-stats{grid-template-columns:1fr}
+      h1{font-size:45px}
+      .lead{font-size:17px}
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="wrap nav-inner">
+      <div class="brand"><div class="logo">AI</div><span>Monitoring Care System</span></div>
+      <div class="nav-links">
+        <a href="#overview">Overview</a>
+        <a href="#features">Features</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#setup">Setup</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <div class="eyebrow">AI + Computer Vision Healthcare Monitoring</div>
+          <h1><span>AI Monitoring Care System</span> for Hospitals & Quarantine Centers</h1>
+          <p class="lead">A video-based monitoring application designed to detect patient falls and irregular activity, generate real-time alerts for caretakers, and create timestamped JSON activity reports through a practical Tkinter interface.</p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#setup">⚡ Run the Project</a>
+            <a class="btn secondary" href="#architecture">🧠 View System Flow</a>
+          </div>
+          <div class="trust-row">
+            <span>✓ Real-time video analysis</span>
+            <span>✓ Automated alerts</span>
+            <span>✓ JSON reporting</span>
+            <span>✓ Tkinter GUI</span>
+          </div>
+        </div>
+
+        <div class="monitor-card" aria-label="Monitoring dashboard illustration">
+          <div class="monitor-top">
+            <div class="monitor-title">Patient Monitoring Console</div>
+            <div class="live">LIVE MONITORING</div>
+          </div>
+          <div class="video">
+            <div class="room"></div>
+            <div class="patient"></div>
+            <div class="bbox"><div class="bbox-label">PATIENT DETECTED</div></div>
+            <div class="corner">Camera Feed · Ward 01</div>
+          </div>
+          <div class="monitor-stats">
+            <div class="mini"><small>Detection Mode</small><strong>Fall + Activity</strong></div>
+            <div class="mini"><small>Alert Status</small><strong style="color:#9ef5c7">Monitoring</strong></div>
+            <div class="mini"><small>Report Output</small><strong>JSON Log</strong></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section id="overview">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="kicker">Project Overview</div>
+          <h2>Computer vision for continuous patient activity monitoring.</h2>
+          <p>The project combines video processing, movement analysis, alerting, report generation, and a desktop graphical interface into one monitoring workflow suitable for demonstrations, research, and further healthcare-AI development.</p>
+        </div>
+
+        <div class="grid-4">
+          <article class="card"><div class="icon">🧍</div><h3>Fall Detection</h3><p>Analyzes visual movement cues from live or recorded video and flags potential fall events for caretaker attention.</p></article>
+          <article class="card"><div class="icon">🎥</div><h3>Activity Monitoring</h3><p>Tracks significant or irregular movement patterns and records detected activity for later review.</p></article>
+          <article class="card"><div class="icon">🚨</div><h3>Real-Time Alerts</h3><p>Triggers alarms for important events, enabling quicker awareness of potentially critical situations.</p></article>
+          <article class="card"><div class="icon">🧾</div><h3>JSON Reporting</h3><p>Creates structured, timestamped activity reports that can be saved for documentation and analysis.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="kicker">Core Features</div>
+          <h2>Built around a simple, practical monitoring workflow.</h2>
+        </div>
+        <div class="grid-4">
+          <article class="card"><div class="icon">🖥️</div><h3>Graphical Interface</h3><p>Users can select a video, start detection, inspect detected events, save reports, and exit through a Tkinter-based GUI.</p></article>
+          <article class="card"><div class="icon">📈</div><h3>Live Activity Visualization</h3><p>Displays activity information visually to help users understand what the monitoring process is detecting over time.</p></article>
+          <article class="card"><div class="icon">📐</div><h3>Motion Geometry</h3><p>Uses frame-level visual cues, object shapes, relative angles, distances, and motion patterns to identify unusual events.</p></article>
+          <article class="card"><div class="icon">💾</div><h3>Persistent Logs</h3><p>Saves activity data in JSON format so events can be reviewed later or integrated into other systems.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="kicker">System Architecture</div>
+          <h2>From video input to caretaker alert and report.</h2>
+        </div>
+        <div class="arch">
+          <div class="step">🎞️<b>Video Input</b><small>Live or recorded feed</small></div>
+          <div class="step">👁️<b>Frame Processing</b><small>OpenCV + NumPy</small></div>
+          <div class="step">🧠<b>Activity Analysis</b><small>Motion & geometry rules</small></div>
+          <div class="step">🚨<b>Event Alert</b><small>Fall / irregular movement</small></div>
+          <div class="step">🧾<b>JSON Report</b><small>Timestamped event log</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap tech-grid">
+        <article class="card">
+          <div class="section-head" style="margin-bottom:0">
+            <div class="kicker">Technology Stack</div>
+            <h2 style="font-size:34px">Lightweight Python stack.</h2>
+            <p>Focused on video processing, GUI interaction, numerical operations, image rendering, and structured event logging.</p>
+          </div>
+          <div class="stack">
+            <span class="pill">OpenCV</span>
+            <span class="pill">NumPy</span>
+            <span class="pill">Tkinter</span>
+            <span class="pill">PIL / Pillow</span>
+            <span class="pill">JSON</span>
+            <span class="pill">Python</span>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="section-head" style="margin-bottom:0">
+            <div class="kicker">Detection Logic</div>
+            <h2 style="font-size:34px">Visual-event analysis.</h2>
+            <p>The application processes video frame by frame, identifies significant movements, draws ellipses around detected regions, and evaluates relative geometry such as angles and distances. Confirmed events are logged and can trigger an alarm.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="setup">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="kicker">Installation</div>
+          <h2>Run the project locally.</h2>
+          <p>Install Python, clone the repository, install dependencies, and launch the application.</p>
+        </div>
+        <div class="codebox">
+          <div class="codebar"><div class="dots"><i></i><i></i><i></i></div><span>terminal</span></div>
+          <pre><code>git clone https://github.com/your-username/ai-monitoring-care-system.git
+cd ai-monitoring-care-system
+pip install -r requirements.txt
+python ai_monitoring_system.py</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap workflow">
+        <div>
+          <div class="section-head">
+            <div class="kicker">Application Workflow</div>
+            <h2>How to use the monitoring interface.</h2>
+            <p>The application follows a simple desktop workflow suitable for demonstrations and local deployment.</p>
+          </div>
+          <div class="notice"><strong>Demo credentials:</strong> Username <code>aicare</code> · Password <code>123</code>. For any real deployment, replace these hard-coded demo credentials with secure authentication.</div>
+        </div>
+        <div class="timeline">
+          <div class="timeline-item"><div class="num">1</div><div><b>Launch the application</b><span>Run <code>python ai_monitoring_system.py</code> from the project directory.</span></div></div>
+          <div class="timeline-item"><div class="num">2</div><div><b>Sign in</b><span>Use the provided demo credentials to access the monitoring interface.</span></div></div>
+          <div class="timeline-item"><div class="num">3</div><div><b>Select a video</b><span>Choose the patient-monitoring video using the “Select Video” control.</span></div></div>
+          <div class="timeline-item"><div class="num">4</div><div><b>Run detection</b><span>Start analysis and review fall or activity events in the output interface.</span></div></div>
+          <div class="timeline-item"><div class="num">5</div><div><b>Save the report</b><span>Export the timestamped activity log to JSON for future review.</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap structure">
+        <article class="card file-card">
+          <div class="kicker">Project Structure</div>
+          <h2 style="font-size:34px">Main files</h2>
+          <ul>
+            <li><strong>ai_monitoring_system.py</strong><br><span style="color:var(--muted)">Main application logic for video processing, event detection, reporting, and Tkinter GUI.</span></li>
+            <li><strong>requirements.txt</strong><br><span style="color:var(--muted)">Python package dependencies required to run the project.</span></li>
+          </ul>
+        </article>
+        <article class="card file-card">
+          <div class="kicker">Project Purpose</div>
+          <h2 style="font-size:34px">Designed for monitoring research.</h2>
+          <p style="color:var(--muted)">The system demonstrates how computer vision can support automated observation of patient movement and create structured records for caretaker review. It can serve as a foundation for future upgrades such as pose estimation, deep-learning fall detection, multi-camera tracking, cloud alerts, and hospital dashboard integration.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="notice"><strong>Important:</strong> This project is a software/research demonstration and should not be treated as a certified medical device, clinical monitoring replacement, or sole safety system without appropriate validation, security controls, clinical oversight, and regulatory review.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <span>AI Monitoring Care System for Hospitals and Quarantine Centers</span>
+      <span>Built with Python · OpenCV · Tkinter · NumPy · PIL · JSON</span>
+    </div>
+  </footer>
+</body>
+</html>
